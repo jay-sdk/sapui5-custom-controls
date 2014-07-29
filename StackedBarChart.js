@@ -36,7 +36,7 @@ sap.ui.core.Control.extend("sap.jaysdk.StackedBarChart", {
 		 */
 		console.log("sap.jaysdk.StackedBarChart.createStackedBarChart()");
 		var oStackedBarChartLayout = new sap.m.VBox({alignItems:sap.m.FlexAlignItems.Center,justifyContent:sap.m.FlexJustifyContent.Center});
-		var oStackedBarChartFlexBox = new sap.m.FlexBox({height:"300px",alignItems:sap.m.FlexAlignItems.Center});
+		var oStackedBarChartFlexBox = new sap.m.FlexBox({height:"auto",alignItems:sap.m.FlexAlignItems.Center});
 		/* ATTENTION: Important
 		 * This is where the magic happens: we need a handle for our SVG to attach to. We can get this using .getIdForLabel()
 		 * Check this in the 'Elements' section of the Chrome Devtools: 
@@ -129,6 +129,20 @@ sap.ui.core.Control.extend("sap.jaysdk.StackedBarChart", {
 		
 		var vis = d3.select("#" + this.sParentId);
 		
+		var tip = d3.select("body").append("div")
+		  .attr("class", "tooltip")
+		  .style("position", "absolute")
+		  .style("text-align", "center")
+		  .style("width", "80px")
+		  .style("height", "28px")
+		  .style("padding", "2px")
+		  .style("font", "11px sans-serif")
+		  .style("background", "#F0F0FF")
+		  .style("border", "0px")
+		  .style("border-radius", "8px")
+		  .style("pointer-events", "none")
+		  .style("opacity", 0);
+		
 		var svg = vis.append("svg")
 	    .attr("width", width + margin.left + margin.right)
 	    .attr("height", height + margin.top + margin.bottom)
@@ -148,7 +162,7 @@ sap.ui.core.Control.extend("sap.jaysdk.StackedBarChart", {
 	        d.total = d.values[d.values.length - 1].y1;
 	    });
 
-	    console.log(data);
+	    //console.log(data);
 	    
 	    
 	    // Sort by quarter
@@ -211,7 +225,21 @@ sap.ui.core.Control.extend("sap.jaysdk.StackedBarChart", {
 	    })
 	        .style("fill", function (d) {
 	        return color(d.name);
-	    });
+	    })
+	    	.on("mouseover", function(d){
+	    		tip.transition()
+	    			.duration(200)
+	    			.style("opacity", .8);
+	    		tip.html(d.name + "<br/>" + d.value)
+	    			.style("left", (d3.event.pageX-40) + "px")
+	    			.style("top", (d3.event.pageY-35) + "px");
+	    			
+	    	})
+	    	.on("mouseout", function(d){
+	    		tip.transition()
+	    			.duration(500)
+	    			.style("opacity", 0);
+	    	});
 
 	    var legend = svg.selectAll(".legend")
 	        .data(color.domain())
