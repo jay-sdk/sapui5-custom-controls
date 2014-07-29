@@ -194,15 +194,7 @@ sap.ui.core.Control.extend("sap.jaysdk.StackedBarChart", {
 	        .style("stroke", "grey")
 	        .style("shape-rendering", "crispEdges")
 	        .call(yAxis);
-	    /*
-	        .append("text")
-	        .attr("transform", "rotate(-90)")
-	        .attr("y", 6)
-	        .attr("dy", ".71em")
-	        .style("text-anchor", "end")
-	        .text("XXXXX");
-	    */
-
+	    
 	    var year = svg.selectAll(".quarter")
 	        .data(data)
 	        .enter().append("g")
