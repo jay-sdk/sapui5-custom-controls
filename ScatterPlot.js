@@ -36,7 +36,7 @@ sap.ui.core.Control.extend("sap.jaysdk.ScatterPlot", {
 		 */
 		console.log("sap.jaysdk.ScatterPlot.createScatterPlot()");
 		var oScatterPlotLayout = new sap.m.VBox({alignItems:sap.m.FlexAlignItems.Center,justifyContent:sap.m.FlexJustifyContent.Center});
-		var oScatterPlotFlexBox = new sap.m.FlexBox({height:"300px",alignItems:sap.m.FlexAlignItems.Center});
+		var oScatterPlotFlexBox = new sap.m.FlexBox({height:"auto",alignItems:sap.m.FlexAlignItems.Center});
 		/* ATTENTION: Important
 		 * This is where the magic happens: we need a handle for our SVG to attach to. We can get this using .getIdForLabel()
 		 * Check this in the 'Elements' section of the Chrome Devtools: 
@@ -75,14 +75,14 @@ sap.ui.core.Control.extend("sap.jaysdk.ScatterPlot", {
 	
 	onAfterRendering: function(){
 		console.log("sap.jaysdk.ScatterPlot.onAfterRendering()");
-		console.log(this.sParentId);
+		//console.log(this.sParentId);
 		var cItems = this.getItems();
 		var data = [];
 		for (var i=0;i<cItems.length;i++){
 			var oEntry = {};
 			for (var j in cItems[i].mProperties) {
 				oEntry[j]=cItems[i].mProperties[j];
-			}					
+			}	
 			data.push(oEntry);
 		}
 		//console.log("Data:");
@@ -167,17 +167,26 @@ sap.ui.core.Control.extend("sap.jaysdk.ScatterPlot", {
 	    	return max;
 	    })]);
 	    
-	    
+	    var totalval = 0;
+	    var totalval2 = 0;
 	    data.forEach(function (d) {
 	        var quarter = d.quarter;
 	        d.values.forEach(function (dd){
 	        	dd.quarter = quarter;
+	        	totalval += +dd.value;
+	        	totalval2 += +dd.value2;
 	        });
 	        
 	    });
 	    
-	    //console.log(data);
+	    var average = totalval/totalval2;
+	    var line_data = [{"x": 0, "y": 0},{"x": (y.domain()[1]*average), "y": y.domain()[1]}];
 	    
+	    var avgline = d3.svg.line()
+	    	.x(function(d){ return x(d.x); })
+	    	.y(function(d){ return y(d.y); })
+	    	.interpolate("linear");
+	   		    
 
 	    svg.append("g")
 	        .attr("class", "x axis")
@@ -188,11 +197,20 @@ sap.ui.core.Control.extend("sap.jaysdk.ScatterPlot", {
 	        .call(xAxis);
 
 	    svg.append("g")
-	        .attr("class", "y axis")
+	        .attr("class", "y-axis")
 	        .style("fill", "none")
 	        .style("stroke", "grey")
 	        .style("shape-rendering", "crispEdges")
 	        .call(yAxis);
+	    
+	    //average line
+	    svg.append("path")
+	    	.attr("class", "avgline")
+	    	.style("stroke", "#000")
+	    	.style("stroke-width", "1px")
+	    	.style("stroke-dasharray", ("4, 4"))
+	    	.attr("d", avgline(line_data));
+	    
 	    /*
 	        .append("text")
 	        .attr("transform", "rotate(-90)")
@@ -223,6 +241,14 @@ sap.ui.core.Control.extend("sap.jaysdk.ScatterPlot", {
 	        return color(d.name);
 	    })
 	    	.style("opacity", .9)
+	    	.style("visibility", function(d){
+	    		if(+d.value != 0){
+	    			return "visible";
+	    		}else{
+	    			return "hidden";
+	    		}
+	    	})
+	    	.style("pointer-events", "visible")
 	    	.on("mouseover", function(d){
 		    		tip.transition()
 		    			.duration(200)
@@ -261,6 +287,12 @@ sap.ui.core.Control.extend("sap.jaysdk.ScatterPlot", {
 	    .text(function (d) {
 	    return d;
 	    });	
+		
+		var avglabel = svg.append("g")
+			.attr("transform", "translate(" + (width-40) + ",140)");
+		avglabel.append("text")
+			.style("text-anchor", "middle")
+			.text("Average: " + average.toFixed(2));
 		
 	}
 	
